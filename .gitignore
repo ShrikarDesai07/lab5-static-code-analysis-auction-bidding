@@ -14,6 +14,11 @@ env/
 .coverage
 htmlcov/
 
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
 # Editor and OS artifacts
 .vscode/
 .idea/

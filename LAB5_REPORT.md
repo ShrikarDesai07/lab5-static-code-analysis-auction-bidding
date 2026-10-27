@@ -9,6 +9,7 @@
 - **Department:** Computer Science and Engineering
 - **Institution:** PES University
 - **Assigned Repository:** [`https://github.com/SETAPESU26/L5_65_auction-bidding`](https://github.com/SETAPESU26/L5_65_auction-bidding)
+- **Published Personal Repository:** [`https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding`](https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding)
 - **Local Working Directory:** `C:\Users\shrik\se\L5_65_auction-bidding`
 - **Assigned Script:** `auction_system.py`
 
@@ -205,23 +206,39 @@ A false positive occurs when an analysis tool flags an issue that poses no genui
 
 ---
 
-## 10. Git Commit History
+## 10. Git Commit & Publication History
 
-The three local commits corresponding to the three tool domains remain intact and unaltered:
+The project repository preserves the complete, auditable evolution of the codebase, beginning with the three required tool-specific commits specified by the lab handout, followed by the domain logic refinement and final documentation deliverables:
 
-1. **Commit 1:** `e963852`
+### Three Required Tool Commits (Lab Handout Deliverable 1)
+1. **Commit 1 (`e963852`):**
    - **Message:** `fix: address Pylint code quality findings`
    - **Summary:** Added module/class/function docstrings, removed `(object)` base class, refactored `highest` and `leader` to `@property`, created `AuctionError` to eliminate `W0718`/`W0719`, fixed date string comparison defect, and implemented snake_case names with backward-compatible aliases.
 
-2. **Commit 2:** `7dd9363`
+2. **Commit 2 (`7dd9363`):**
    - **Message:** `fix: resolve Bandit security findings`
    - **Summary:** Enabled `autoescape=True` in Jinja2 environment (mitigating `B701` / CWE-94), sanitized bidder badge inputs using `markupsafe.escape` (mitigating `B704` / CWE-79), and replaced standard `xmlrpc.client` with `defusedxml.xmlrpc.xmlrpc_client.ServerProxy` (mitigating `B411` / CWE-20).
 
-3. **Commit 3:** `95c610a`
+3. **Commit 3 (`95c610a`):**
    - **Message:** `style: resolve Flake8 formatting issues`
    - **Summary:** Formatted line lengths to strictly conform to PEP 8 limits (≤ 79 characters), adjusted top-level blank line separations (`E302`, `E305`), and ensured clean Flake8 verification across all files.
 
-*(Note: In accordance with explicit lab safety instructions, no commits have been pushed remotely.)*
+### Subsequent Engineering & Deliverable Commits
+4. **Commit 4 (`d3ee875`):**
+   - **Message:** `fix: enforce minimum bid increments`
+   - **Summary:** Enforced `MIN_INCREMENT = 100` for subsequent bids (`+50` sub-increment bids rejected per demo test case); added comprehensive 12-test automated unit/regression suite in `test_auction_system.py`.
+
+5. **Commit 5 (`4ef0c4e`):**
+   - **Message:** `docs: add lab report, analysis reports, and project documentation`
+   - **Summary:** Added `requirements.txt`, updated `README.md`, `.gitignore`, `issues.md`, `reflection.md`, `LAB5_REPORT.md`, before/after evidence reports (`reports/`), and root-level reports.
+
+6. **Commit 6 (Current):**
+   - **Message:** `docs: correct publication status and ignore local secrets`
+   - **Summary:** Updated laboratory report with published repository details, updated `.gitignore` rules for local secret exclusion (`.env`, `.env.*`).
+
+### Remote Repository Status
+- **Personal Repository:** The full project and commit history are published to the student's personal public GitHub repository: [`https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding`](https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding).
+- **Assigned College Repository:** The original college repository (`origin`: `https://github.com/SETAPESU26/L5_65_auction-bidding`) was left untouched and preserved at its initial commit (`1e01505`).
 
 ---
 
@@ -230,4 +247,4 @@ The three local commits corresponding to the three tool domains remain intact an
 - **Pylint `R0913 (too-many-arguments)` & `R0917 (too-many-positional-arguments)`:**  
   `Auction.__init__` accepts 5 positional attributes (`item_id`, `title`, `seller`, `reserve_price`, `ends_at`) plus `self`, totaling 6 arguments against Pylint's default threshold of 5. This constructor signature was intentionally preserved to guarantee backward compatibility with existing callers and public interfaces. Pylint's final score of **9.81 / 10** comfortably exceeds the assignment threshold of **9.5 / 10**.
 - **Remote Publishing Status:**  
-  All changes, test suites, and reports are held strictly on the local `main` branch awaiting final user approval.
+  The project has been successfully published and is publicly accessible at [`https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding`](https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding). No writes or force-pushes were made to the original college repository.
