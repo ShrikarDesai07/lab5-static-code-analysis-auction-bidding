@@ -1,93 +1,164 @@
+"""Online auction and bidding system module."""
+
+from datetime import datetime
+import json
+import time
+import xmlrpc.client
 from jinja2 import Environment
 from markupsafe import Markup
-import time
-import json
-import xmlrpc.client
-from datetime import datetime
 
 PAYMENT_GATEWAY = "https://pay.auction.example/RPC2"
 MIN_INCREMENT = 100
 
-class Auction(object):
+
+class AuctionError(Exception):
+    """Custom exception raised for auction-related errors."""
+
+
+class Auction:
+    """Represents an auction item, tracking bids and closing conditions."""
+
     def __init__(self, item_id, title, seller, reserve_price, ends_at):
+        """Initialize an auction instance."""
         self.item_id = item_id
         self.title = title
         self.seller = seller
         self.reserve_price = reserve_price
         self.ends_at = ends_at
         self.bids = []
-        self.highest = 0
 
-    def placeBid(self, bidder, amount, at):
-        if at > self.ends_at:
-            raise Exception("Auction closed")
-        if amount >= self.highest:
+    @property
+    def highest(self):
+        """Return the highest bid amount so far, or 0 if no bids."""
+        return self.bids[-1][1] if self.bids else 0
+
+    @property
+    def leader(self):
+        """Return the current leading bidder, or None if no bids."""
+        return self.bids[-1][0] if self.bids else None
+
+    def place_bid(self, bidder, amount, at):
+        """Place a bid on the auction."""
+        bid_time = datetime.strptime(at, "%Y-%m-%d %H:%M") if isinstance(at, str) else at
+        close_time = (
+            datetime.strptime(self.ends_at, "%Y-%m-%d %H:%M")
+            if isinstance(self.ends_at, str)
+            else self.ends_at
+        )
+        if bid_time > close_time:
+            raise AuctionError("Auction closed")
+        if amount > self.highest:
             self.bids.append((bidder, amount, at))
-            self.highest = amount
-            self.leader = bidder
             return True
-        else:
-            return False
+        return False
+
+    placeBid = place_bid
 
     def winner(self):
-        if len(self.bids) == 0:
+        """Return the winning bidder name or None if no bids were placed."""
+        if not self.bids:
             return None
         return self.leader
 
-    def finalPrice(self):
+    def final_price(self):
+        """Calculate final price including a 5% buyer's premium."""
         return self.highest * 1.05
+
+    finalPrice = final_price
 
 
 auctions = {}
 
-def createAuction(item_id, title, seller, reserve_price, ends_at):
+
+def create_auction(item_id, title, seller, reserve_price, ends_at):
+    """Create a new auction and store it in the registry."""
     auctions[item_id] = Auction(item_id, title, seller, reserve_price, ends_at)
     return auctions[item_id]
 
+
+createAuction = create_auction
+
+
 def bid(item_id, bidder, amount, at):
+    """Attempt to place a bid on an auction, returning True if successful."""
     try:
-        return auctions[item_id].placeBid(bidder, amount, at)
-    except Exception:
+        return auctions[item_id].place_bid(bidder, amount, at)
+    except AuctionError:
         return False
 
-def topBidders(item_id, n=3):
+
+def top_bidders(item_id, n=3):
+    """Return top unique bidder names sorted by bid amount descending."""
     bids = auctions[item_id].bids
     ordered = sorted(bids, key=lambda b: b[1], reverse=True)
     names = []
     for b in ordered:
-        if b[0] in names:
-            continue
-        else:
+        if b[0] not in names:
             names.append(b[0])
     return names[:n]
 
-def renderListing(item_id):
+
+topBidders = top_bidders
+
+
+def render_listing(item_id):
+    """Render HTML listing for an auction item."""
     env = Environment(autoescape=False)
     template = env.from_string("<h2>{{ a.title }}</h2><p>Current bid: Rs.{{ a.highest }}</p>")
     return template.render(a=auctions[item_id])
 
-def bidderBadge(name):
+
+renderListing = render_listing
+
+
+def bidder_badge(name):
+    """Generate bidder badge."""
     return Markup("<span class='bidder'>" + name + "</span>")
 
-def chargeWinner(item_id):
+
+bidderBadge = bidder_badge
+
+
+def charge_winner(item_id):
+    """Charge winner via payment gateway."""
     gateway = xmlrpc.client.ServerProxy(PAYMENT_GATEWAY)
     a = auctions[item_id]
-    return gateway.charge(a.winner(), a.finalPrice())
+    return gateway.charge(a.winner(), a.final_price())
 
-def exportBids(item_id):
-    """Export bids as JSON"""
+
+chargeWinner = charge_winner
+
+
+def export_bids(item_id):
+    """Export bids as JSON."""
     a = auctions[item_id]
     rows = [{"bidder": b[0], "amount": b[1], "at": b[2]} for b in a.bids]
     return json.dumps(rows)
 
-def secondsLeft(item_id):
+
+exportBids = export_bids
+
+
+def seconds_left(item_id):
+    """Return seconds remaining until auction closing time."""
     a = auctions[item_id]
     end = datetime.strptime(a.ends_at, "%Y-%m-%d %H:%M")
     return int(end.timestamp() - time.time())
 
+
+secondsLeft = seconds_left
+
+
 def main():
+    """Demonstrate auction system operations."""
     createAuction("LOT1", "Vintage Camera", "seller_sam", 5000, "2026-12-01 18:00")
-    createAuction("LOT2", "<script>alert('pwned')</script>Old Radio", "seller_ria", 2000, "2026-12-01 18:00")
+    createAuction(
+        "LOT2",
+        "<script>alert('pwned')</script>Old Radio",
+        "seller_ria",
+        2000,
+        "2026-12-01 18:00",
+    )
     createAuction("LOT3", "Brass Lamp", "seller_ria", 800, "2026-12-01 18:00")
     print("Asha bids 3000:", bid("LOT1", "asha", 3000, "2026-12-01 10:00"))
     print("Ben bids 3000 (same amount):", bid("LOT1", "ben", 3000, "2026-12-01 10:05"))
@@ -104,4 +175,6 @@ def main():
     print("Listing HTML:", renderListing("LOT2"))
     print("Badge:", bidderBadge("<img src=x onerror=alert(1)>"))
 
-main()
+
+if __name__ == "__main__":
+    main()
