@@ -19,11 +19,15 @@ The code works, but only just. It has quality, style and security problems of th
    ```
    It runs a short built-in demo and prints the results; it does not ask for input. Read every line and ask whether a sensible program would print that. Not every problem in this file is something a tool will flag, so pay attention to output that looks wrong.
 
-2. **Install the tools:**
+2. **Install the tools and dependencies:**
    ```bash
-   python -m pip install pylint bandit flake8 jinja2
+   python -m pip install -r requirements.txt
    ```
-   `jinja2` is installed as well because the program imports it (its `markupsafe` dependency comes with it); without it the program stops with `ModuleNotFoundError`.
+   Or install individually:
+   ```bash
+   python -m pip install pylint bandit flake8 jinja2 defusedxml pytest
+   ```
+   `jinja2` and `defusedxml` are required runtime dependencies (`markupsafe` comes with `jinja2`).
 
 3. **Run the analysis** and save the reports:
    ```bash
@@ -42,6 +46,13 @@ The code works, but only just. It has quality, style and security problems of th
 5. **Fix the code.** Fix at least 4 of the issues you documented, then rerun all three tools to confirm they are gone. Repeat until you are satisfied. The program should still do its job when you are done.
 
 6. **Reflect.** Answer the four reflection questions from the handout in `reflection.md`.
+
+### Run automated tests
+
+Run the pytest suite to verify all unit and regression tests:
+```bash
+python -m pytest -v
+```
 
 ## Deliverables
 
