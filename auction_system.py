@@ -51,10 +51,13 @@ class Auction:
         )
         if bid_time > close_time:
             raise AuctionError("Auction closed")
-        if amount > self.highest:
-            self.bids.append((bidder, amount, at))
-            return True
-        return False
+        if self.highest == 0:
+            if amount <= 0:
+                return False
+        elif amount < self.highest + MIN_INCREMENT:
+            return False
+        self.bids.append((bidder, amount, at))
+        return True
 
     placeBid = place_bid
 
