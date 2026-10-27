@@ -3,9 +3,9 @@
 from datetime import datetime
 import json
 import time
-import xmlrpc.client
+from defusedxml.xmlrpc import ServerProxy
 from jinja2 import Environment
-from markupsafe import Markup
+from markupsafe import Markup, escape
 
 PAYMENT_GATEWAY = "https://pay.auction.example/RPC2"
 MIN_INCREMENT = 100
@@ -103,7 +103,7 @@ topBidders = top_bidders
 
 def render_listing(item_id):
     """Render HTML listing for an auction item."""
-    env = Environment(autoescape=False)
+    env = Environment(autoescape=True)
     template = env.from_string("<h2>{{ a.title }}</h2><p>Current bid: Rs.{{ a.highest }}</p>")
     return template.render(a=auctions[item_id])
 
@@ -113,7 +113,7 @@ renderListing = render_listing
 
 def bidder_badge(name):
     """Generate bidder badge."""
-    return Markup("<span class='bidder'>" + name + "</span>")
+    return Markup("<span class='bidder'>{}</span>").format(escape(name))
 
 
 bidderBadge = bidder_badge
@@ -121,7 +121,7 @@ bidderBadge = bidder_badge
 
 def charge_winner(item_id):
     """Charge winner via payment gateway."""
-    gateway = xmlrpc.client.ServerProxy(PAYMENT_GATEWAY)
+    gateway = ServerProxy(PAYMENT_GATEWAY)
     a = auctions[item_id]
     return gateway.charge(a.winner(), a.final_price())
 
