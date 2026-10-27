@@ -1,65 +1,103 @@
-# Lab 5: Static Code Analysis — Online Auction and Bidding System
+# Lab 5 — Static Code Analysis
 
-**Your file:** `auction_system.py`
-**Python:** 3.10 or newer
+**Student:** Shrikar Desai<br>
+**SRN:** PES1UG24CS916<br>
+**Course:** Software Engineering Lab (Lab 5)<br>
+**Assigned Repository:** [`https://github.com/SETAPESU26/L5_65_auction-bidding`](https://github.com/SETAPESU26/L5_65_auction-bidding)<br>
+**Personal Repository:** [https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding](https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding)
 
-Follow the lab handout for the full instructions.
+---
 
-## About the program
+## Overview
 
-An online auction and bidding system. An `Auction` class tracks reserve prices and closing times; the program accepts bids, picks the winner and final price (with a buyer's premium), lists top bidders, renders HTML listings and bidder badges, exports bids and calls a payment gateway to charge the winner.
+In this lab, I worked on an online auction bidding program (`auction_system.py`). The program manages items with reserve prices and closing times, processes bids, calculates final prices with a 5% buyer's premium, identifies winning bidders, and renders HTML listings and bidder badges.
 
-The code works, but only just. It has quality, style and security problems of the kind Pylint, Flake8 and Bandit are built to find.
+The objective was to run static code analysis tools on the initial codebase, identify security, maintainability, style, and correctness issues, refactor the code to resolve the findings, and verify that the program behaves properly.
 
-## What to do
+## What I Implemented
 
-1. **Run it first** and read the output carefully:
-   ```bash
-   python auction_system.py
-   ```
-   It runs a short built-in demo and prints the results; it does not ask for input. Read every line and ask whether a sensible program would print that. Not every problem in this file is something a tool will flag, so pay attention to output that looks wrong.
+1. **Security Hardening (Bandit):**
+   - **XSS Prevention in Jinja2:** Enabled `autoescape=True` in `render_listing()` so untrusted HTML in auction titles is properly escaped instead of executing scripts.
+   - **XSS Prevention in MarkupSafe:** Used `markupsafe.escape()` in `bidder_badge()` to sanitize bidder names before creating `Markup` objects.
+   - **XML-RPC Protection:** Replaced standard `xmlrpc.client` with `defusedxml.xmlrpc.xmlrpc_client.ServerProxy` in `charge_winner()` to protect against XML entity expansion (Billion Laughs) attacks.
 
-2. **Install the tools and dependencies:**
-   ```bash
-   python -m pip install -r requirements.txt
-   ```
-   Or install individually:
-   ```bash
-   python -m pip install pylint bandit flake8 jinja2 defusedxml pytest
-   ```
-   `jinja2` and `defusedxml` are required runtime dependencies (`markupsafe` comes with `jinja2`).
+2. **Code Quality and Maintainability (Pylint):**
+   - **Exception Handling:** Replaced generic `Exception` usage with a dedicated `AuctionError` class, eliminating broad exception catching and raising.
+   - **Dynamic Properties:** Replaced imperative updates of `highest` and `leader` with `@property` methods derived from `self.bids`, ensuring consistent state and resolving undefined attribute warnings.
+   - **Documentation & Standards:** Added module, class, and method docstrings, removed redundant Python 2 `(object)` inheritance, and ordered imports according to PEP 8.
+   - **Naming & Compatibility:** Renamed methods and functions to standard `snake_case` while retaining `camelCase` aliases to keep existing interfaces working.
 
-3. **Run the analysis** and save the reports:
-   ```bash
-   python -m pylint auction_system.py > pylint_report.txt
-   python -m bandit -r auction_system.py > bandit_report.txt
-   python -m flake8 auction_system.py > flake8_report.txt
-   ```
-   Use the `python -m` form: it works everywhere, including Windows where a bare `pylint` is often "not recognized". The tools exit with a non-zero status whenever they find issues; that is expected, not an error. In Windows PowerShell 5.1, `>` saves files as UTF-16; if a report looks garbled, use `python -m pylint auction_system.py | Out-File -Encoding utf8 pylint_report.txt` instead.
+3. **Logic and Correctness Fixes:**
+   - **Timestamp Parsing:** Fixed a bug where timestamps were compared as strings (`at > self.ends_at`), which caused morning bids such as `"2026-12-01 9:30"` to be incorrectly rejected before an `"18:00"` close. I parsed both values using `datetime.strptime()` for reliable temporal comparisons.
+   - **Minimum Increment Enforcement:** Hooked up the previously unused `MIN_INCREMENT = 100` constant so subsequent bids must exceed the highest bid by at least 100, rejecting tied bids and sub-increment bids (such as +50).
 
-4. **Document the issues** in `issues.md` using this table (at least 4 rows, high and medium severity first):
+4. **Automated Testing:**
+   - Wrote a 12-test suite in `test_auction_system.py` covering auction lifecycle events, increment rules, seller bids, timestamp edge cases, and XSS sanitization.
 
-   | Issue | Type | Line(s) | Description | Fix Approach |
-   |-------|------|---------|-------------|--------------|
-   | ... | ... | ... | ... | ... |
+## Tools Used
 
-5. **Fix the code.** Fix at least 4 of the issues you documented, then rerun all three tools to confirm they are gone. Repeat until you are satisfied. The program should still do its job when you are done.
+- **Pylint:** Checks code quality, variable lifecycle, docstring completeness, and overall structural design.
+- **Bandit:** Scans the Python Abstract Syntax Tree (AST) for common security vulnerabilities (CWE mappings).
+- **Flake8:** Enforces PEP 8 style guidelines, line length limits (≤ 79 characters), and syntax rules.
+- **pytest:** Runs unit and regression tests against the refactored implementation.
 
-6. **Reflect.** Answer the four reflection questions from the handout in `reflection.md`.
+## Setup
 
-### Run automated tests
+Run these commands in Windows PowerShell to set up the virtual environment:
 
-Run the pytest suite to verify all unit and regression tests:
-```bash
-python -m pytest -v
+```powershell
+# Create and activate virtual environment
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+# Install project dependencies
+python -m pip install -r requirements.txt
 ```
 
-## Deliverables
+## Running the Program
 
-1. `auction_system.py`: your cleaned version, with at least 4 issues fixed.
-2. `issues.md`: the completed issue table.
-3. `reflection.md`: your answers to the reflection questions.
+To run the built-in auction demonstration script:
 
-**Target:** aim for a Pylint score above 9.5 on your final file. A perfect 10.00/10 is very good.
+```powershell
+python auction_system.py
+```
 
-Be ready to explain the bugs you found and how you fixed them. You may be called on to present.
+## Running Tests and Analysis
+
+Run the test suite and static analysis tools:
+
+```powershell
+# Run the automated test suite
+pytest -v
+
+# Run static analysis tools
+python -m pylint auction_system.py
+python -m bandit -r auction_system.py
+python -m flake8 auction_system.py test_auction_system.py
+```
+
+## Results
+
+The verified results on the final codebase match the reports:
+
+| Tool / Check | Baseline (Before) | Final (After) | Target | Status |
+|---|---|---|---|---|
+| **Pylint** | 5.86 / 10 | **9.81 / 10** | > 9.5 / 10 | Passed |
+| **Bandit** | 3 issues (2 High, 1 Med) | **0 issues** | 0 issues | Passed |
+| **Flake8** | 19 violations | **0 violations** | 0 violations | Passed |
+| **pytest** | 0 tests | **12 passed** | All pass | Passed |
+
+## Files and Reports
+
+- `auction_system.py`: The refactored and hardened auction program.
+- `test_auction_system.py`: The unit and regression test suite.
+- `issues.md`: The required table documenting identified issues, severity, line numbers, descriptions, and fixes.
+- `reflection.md`: My answers to the four lab reflection questions regarding static analysis concepts, CI/CD, false positives, and trade-offs.
+- `LAB5_REPORT.md`: My comprehensive lab report containing student details, metrics, issue analysis, and commit history.
+- `reports/before/`: Preserved baseline reports before making changes (`pylint_report.txt`, `bandit_report.txt`, `flake8_report.txt`).
+- `reports/after/`: Final static analysis reports reflecting the current source code.
+
+## Repository
+
+The project is published on my personal GitHub repository:
+[https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding](https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding)

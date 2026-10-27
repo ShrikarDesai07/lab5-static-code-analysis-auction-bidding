@@ -232,9 +232,13 @@ The project repository preserves the complete, auditable evolution of the codeba
    - **Message:** `docs: add lab report, analysis reports, and project documentation`
    - **Summary:** Added `requirements.txt`, updated `README.md`, `.gitignore`, `issues.md`, `reflection.md`, `LAB5_REPORT.md`, before/after evidence reports (`reports/`), and root-level reports.
 
-6. **Commit 6 (Current):**
+6. **Commit 6 (`999ef80`):**
    - **Message:** `docs: correct publication status and ignore local secrets`
    - **Summary:** Updated laboratory report with published repository details, updated `.gitignore` rules for local secret exclusion (`.env`, `.env.*`).
+
+7. **Commit 7 (Current):**
+   - **Message:** `docs: restructure README and clarify project documentation`
+   - **Summary:** Restructured README into a clear student perspective, detailing implemented fixes, setup, running instructions, verified results, and project architecture.
 
 ### Remote Repository Status
 - **Personal Repository:** The full project and commit history are published to the student's personal public GitHub repository: [`https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding`](https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding).
