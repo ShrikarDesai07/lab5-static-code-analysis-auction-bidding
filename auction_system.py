@@ -3,7 +3,7 @@
 from datetime import datetime
 import json
 import time
-from defusedxml.xmlrpc import ServerProxy
+from defusedxml.xmlrpc import xmlrpc_client
 from jinja2 import Environment
 from markupsafe import Markup, escape
 
@@ -39,7 +39,11 @@ class Auction:
 
     def place_bid(self, bidder, amount, at):
         """Place a bid on the auction."""
-        bid_time = datetime.strptime(at, "%Y-%m-%d %H:%M") if isinstance(at, str) else at
+        bid_time = (
+            datetime.strptime(at, "%Y-%m-%d %H:%M")
+            if isinstance(at, str)
+            else at
+        )
         close_time = (
             datetime.strptime(self.ends_at, "%Y-%m-%d %H:%M")
             if isinstance(self.ends_at, str)
@@ -104,7 +108,9 @@ topBidders = top_bidders
 def render_listing(item_id):
     """Render HTML listing for an auction item."""
     env = Environment(autoescape=True)
-    template = env.from_string("<h2>{{ a.title }}</h2><p>Current bid: Rs.{{ a.highest }}</p>")
+    template = env.from_string(
+        "<h2>{{ a.title }}</h2><p>Current bid: Rs.{{ a.highest }}</p>"
+    )
     return template.render(a=auctions[item_id])
 
 
@@ -121,7 +127,7 @@ bidderBadge = bidder_badge
 
 def charge_winner(item_id):
     """Charge winner via payment gateway."""
-    gateway = ServerProxy(PAYMENT_GATEWAY)
+    gateway = xmlrpc_client.ServerProxy(PAYMENT_GATEWAY)
     a = auctions[item_id]
     return gateway.charge(a.winner(), a.final_price())
 
@@ -151,7 +157,9 @@ secondsLeft = seconds_left
 
 def main():
     """Demonstrate auction system operations."""
-    createAuction("LOT1", "Vintage Camera", "seller_sam", 5000, "2026-12-01 18:00")
+    createAuction(
+        "LOT1", "Vintage Camera", "seller_sam", 5000, "2026-12-01 18:00"
+    )
     createAuction(
         "LOT2",
         "<script>alert('pwned')</script>Old Radio",
@@ -161,15 +169,33 @@ def main():
     )
     createAuction("LOT3", "Brass Lamp", "seller_ria", 800, "2026-12-01 18:00")
     print("Asha bids 3000:", bid("LOT1", "asha", 3000, "2026-12-01 10:00"))
-    print("Ben bids 3000 (same amount):", bid("LOT1", "ben", 3000, "2026-12-01 10:05"))
-    print("Asha bids 3050 (+50):", bid("LOT1", "asha", 3050, "2026-12-01 10:10"))
-    print("Seller bids on own item:", bid("LOT1", "seller_sam", 4000, "2026-12-01 11:00"))
-    print("Bid at 9:30 AM (before 18:00 close):", bid("LOT1", "dev", 4500, "2026-12-01 9:30"))
-    print("Late bid (next day):", bid("LOT1", "eve", 9000, "2026-12-02 09:00"))
+    print(
+        "Ben bids 3000 (same amount):",
+        bid("LOT1", "ben", 3000, "2026-12-01 10:05"),
+    )
+    print(
+        "Asha bids 3050 (+50):",
+        bid("LOT1", "asha", 3050, "2026-12-01 10:10"),
+    )
+    print(
+        "Seller bids on own item:",
+        bid("LOT1", "seller_sam", 4000, "2026-12-01 11:00"),
+    )
+    print(
+        "Bid at 9:30 AM (before 18:00 close):",
+        bid("LOT1", "dev", 4500, "2026-12-01 9:30"),
+    )
+    print(
+        "Late bid (next day):",
+        bid("LOT1", "eve", 9000, "2026-12-02 09:00"),
+    )
     print("Winner:", auctions["LOT1"].winner())
     print("Final price (reserve 5000):", auctions["LOT1"].finalPrice())
     print("Top bidders:", topBidders("LOT1"))
-    print("Rs.0 bid on LOT3 (reserve 800):", bid("LOT3", "carl", 0, "2026-12-01 11:30"))
+    print(
+        "Rs.0 bid on LOT3 (reserve 800):",
+        bid("LOT3", "carl", 0, "2026-12-01 11:30"),
+    )
     print("LOT3 winner:", auctions["LOT3"].winner())
     print("No-bid winner:", auctions["LOT2"].winner())
     print("Listing HTML:", renderListing("LOT2"))
