@@ -96,8 +96,3 @@ The verified results on the final codebase match the reports:
 - `LAB5_REPORT.md`: My comprehensive lab report containing student details, metrics, issue analysis, and commit history.
 - `reports/before/`: Preserved baseline reports before making changes (`pylint_report.txt`, `bandit_report.txt`, `flake8_report.txt`).
 - `reports/after/`: Final static analysis reports reflecting the current source code.
-
-## Repository
-
-The project is published on my personal GitHub repository:
-[https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding](https://github.com/ShrikarDesai07/lab5-static-code-analysis-auction-bidding)
